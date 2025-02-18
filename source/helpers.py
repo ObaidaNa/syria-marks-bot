@@ -61,7 +61,7 @@ def convert_makrs_to_md_file(
     lst.append("- العدد الكلي: {}\n".format(len(marks)))
     lst.append("- عدد الناجحين: {}\n\n".format(passed_cnt))
     lst.append("# By: [@{}](https://t.me/{})\n\n".format(bot_username, bot_username))
-    lst.append("# قناة البوت: https://t.me/albaath_marks\n---")
+    lst.append("# قناة البوت: https://t.me/Syria_Marks_Bot\n---")
     output = "".join(lst)
     with BytesIO() as f:
         f.write(output.encode())
@@ -73,7 +73,7 @@ def verify_blocked_user(func):
     async def inner_func(
         update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs
     ):
-        user_id = update.effective_user.id
+        user_id = get_user_id(update)
         user = get_user_from_db(get_session(context), user_id)
         if user and user.is_blocked:
             return
@@ -143,7 +143,7 @@ def parse_marks_to_text_from_website(student: StudentCreate) -> str:
         output.append(escape_markdown("\n-----------\n", version=2))
 
     output.append("\n> *من الموقع* ✔️\n")
-    output.append("\n> *By*: @albaath\\_marks\\_bot")
+    output.append("\n> *By*: @syria\\_marks\\_bot")
     return "".join(output)
 
 
@@ -181,7 +181,7 @@ def parse_marks_to_text_from_db(
         marks_sum = sum([x.total for x in marks])
         avg_result = str(round(marks_sum / len(marks), 3))
         output.append("\n🧮 *المعدل*: `{}`\n".format(escape_markdown(avg_result, 2)))
-        output.append("\n> *By*: @albaath\\_marks\\_bot")
+        output.append("\n> *By*: @syria\\_marks\\_bot")
     return "".join(output)
 
 
@@ -225,3 +225,68 @@ def is_passed(marks: list[SubjectMarkCreateSchema]) -> bool:
         else:
             faild += 1
     return faild < 5
+
+
+ar_map = {
+    "Ø¨": "ب",
+    "Øª": "ت",
+    "Ø«": "ث",
+    "Ø¬": "ج",
+    "Ø­": "ح",
+    "Ø®": "خ",
+    "Ø¯": "د",
+    "Ø°": "ذ",
+    "Ø±": "ر",
+    "Ù€": "ر",
+    "Ø²": "ز",
+    "Ø³": "س",
+    "Ø´": "ش",
+    "Øµ": "ص",
+    "Ø¶": "ض",
+    "Ø·": "ط",
+    "Ø¸": "ظ",
+    "Ø¹": "ع",
+    "Øº": "غ",
+    "Ù": "ف",
+    "Ù‚": "ق",
+    "Ùƒ": "ك",
+    "Ù„": "ل",
+    "Ù…": "م",
+    "Ù†": "ن",
+    "Ù‡": "ه",
+    "Ùˆ": "و",
+    "ÙŠ": "ي",
+    "Ø§": "ا",
+    "Ø¥": "إ",
+    "Ø¦": "ئ",
+    "Ø£": "أ",
+    "Ø¢": "آ",
+    "ÙŽ": "ـ",
+    "Ø¡": "ء",
+    "Ù‰": "ى",
+    "Ø©": "ة",
+    "Ø¤": "ؤ",
+}
+
+
+def is_arabic(x: str) -> bool:
+    return "\u0621" <= x <= "\u064a"
+
+
+def is_ascii(x: str) -> bool:
+    return ord(x) < 128
+
+
+def fix_arabic_encoding(text: str) -> str:
+    buffer = ""
+    fixed = ""
+    for i in range(len(text)):
+        if is_ascii(text[i]) or is_arabic(text[i]):
+            buffer = ""
+            fixed += text[i]
+            continue
+        buffer += text[i]
+        if len(buffer) == 2:
+            fixed += ar_map[buffer]
+            buffer = ""
+    return fixed
